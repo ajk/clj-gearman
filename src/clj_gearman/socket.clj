@@ -1,5 +1,5 @@
 (ns clj-gearman.socket
-  (:import (java.net Socket)
+  (:import (java.net Socket SocketTimeoutException)
            (java.io Closeable))
   (:require [clj-gearman.header :as h]
             [clj-gearman.util :as u]))
@@ -58,3 +58,21 @@
     (doseq [chunk data]
       (.write w chunk))
     (.flush w)))
+
+(defn wait-loop [worker fun]
+  (.setSoTimeout @worker 30000)
+  (loop []
+    (if-let [res (try (fun) (catch SocketTimeoutException _ false))]
+      (do
+        (.setSoTimeout @worker 0)
+        res)
+      (recur))))
+
+(defn response [socket opt]
+  (let [[_ code _ data] (read-msg socket (:in-enc opt))]
+    [(h/lookup code) data]))
+
+(defn request [socket code & msg]
+  (let [opt (meta socket)]
+    (write-msg socket h/req code (:out-enc opt) msg)
+    (response socket opt)))

@@ -1,20 +1,7 @@
 (ns clj-gearman.client
   (:require [clj-gearman.socket :as s]
-            [clj-gearman.header :as h]))
-
-(defn response [client opt]
-  (let [[_ code _ data] (s/read-msg client (:in-enc opt))]
-    [(h/lookup code) data]))
-
-
-(defn request [client code & msg]
-  (let [opt (meta client)]
-    (s/write-msg client h/req code (:out-enc opt) msg)
-    (response client opt)))
-
-
-(defn new-uniq []
-  (str (java.util.UUID/randomUUID)))
+            [clj-gearman.header :as h]
+            [clj-gearman.util   :as u]))
 
 
 (defn read-response [client]
@@ -25,7 +12,7 @@
         warn?  #{"WORK_WARNING"}]
 
     (loop [result ""]
-      (let [[code data] (response client opt)]
+      (let [[code data] (s/response client opt)]
         (when (warn? code) (.print *err* (last data)))
         (cond
           (error? code) [code data]
@@ -37,10 +24,10 @@
   ([client fn-name data] (submit-job client fn-name data {}))
 
   ([client fn-name data opt]
-  (let [res (request client
+  (let [res (s/request client
                      (:code opt (h/code "SUBMIT_JOB"))
                      fn-name
-                     (:uniq opt (new-uniq))
+                     (:uniq opt (u/new-uniq))
                      data)]
     (if (= (res 0) "JOB_CREATED")
       (read-response client)
@@ -62,10 +49,10 @@
 (defn submit-job-bg
   ([client fn-name data] (submit-job-bg client fn-name data {}))
   ([client fn-name data opt]
-   (request client
+   (s/request client
             (:code opt (h/code "SUBMIT_JOB_BG"))
             fn-name
-            (:uniq opt (new-uniq))
+            (:uniq opt (u/new-uniq))
             data)))
 
 (defn submit-job-high-bg
@@ -80,14 +67,14 @@
 
 
 (defn get-status [client job-handle]
-  (request client (h/code "GET_STATUS") job-handle))
+  (s/request client (h/code "GET_STATUS") job-handle))
 
 (defn get-status-unique [client uniq]
-  (request client (h/code "GET_STATUS_UNIQUE") uniq))
+  (s/request client (h/code "GET_STATUS_UNIQUE") uniq))
 
 (defn echo
   [client data]
-  (let [[code [response]] (request client (h/code "ECHO_REQ") data)]
+  (let [[code [response]] (s/request client (h/code "ECHO_REQ") data)]
     [code response]))
 
 (defn connect [c-map]

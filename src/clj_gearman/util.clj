@@ -2,6 +2,16 @@
   (:import (java.nio ByteBuffer))
   (:require [clojure.pprint :refer [pprint]]))
 
+(defn new-uniq []
+  (str (java.util.UUID/randomUUID)))
+
+(defn fun-arity  [fun]
+  (->> (class fun)
+       .getDeclaredMethods
+       (filter #(= "invoke" (.getName %)))
+       first
+       .getParameterTypes
+       alength))
 
 (defn int->bytea
   "Converts signed integer to a byte array in big-endian order."
