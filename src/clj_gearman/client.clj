@@ -72,11 +72,17 @@
 (defn get-status-unique [client uniq]
   (s/request client (h/code "GET_STATUS_UNIQUE") uniq))
 
+(defn option-req [client opt]
+  (s/request client (h/code "OPTION_REQ") opt))
+
 (defn echo
   [client data]
   (let [[code [response]] (s/request client (h/code "ECHO_REQ") data)]
     [code response]))
 
 (defn connect [c-map]
-  (s/connect (first (:job-servers c-map)) c-map))
+  (let [client (s/connect (first (:job-servers c-map)) c-map)]
+    (when (:exceptions c-map)
+      (option-req client "exceptions"))
+    client))
 
