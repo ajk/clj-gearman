@@ -47,7 +47,7 @@
   (send-msg worker "WORK_FAIL" job-handle))
 
 (defn work-exception [worker job-handle exception]
-  (send-msg worker "WORK_FAIL" job-handle exception))
+  (send-msg worker "WORK_EXCEPTION" job-handle exception))
 
 (defn set-client-id [worker uniq]
   (send-msg worker "SET_CLIENT_ID" uniq))
@@ -56,7 +56,10 @@
 (defn run-task [worker job-handle fn-name workload]
   (let [fun (get-in (meta worker) [:can-do fn-name])]
     (if (= (u/fun-arity fun) 1)
-      (work-complete worker job-handle (fun workload))
+      (try
+        (work-complete worker job-handle (fun workload))
+        (catch Throwable ex
+          (work-exception worker job-handle ex)))
       (fun worker job-handle workload))))
 
 
