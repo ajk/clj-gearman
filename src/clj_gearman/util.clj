@@ -39,14 +39,26 @@
   ([byte-a enc]
    (String. byte-a (or enc "UTF-8"))))
 
+
+(defn concat-bytea [byte-arrays]
+  (let  [size (reduce + (map count byte-arrays))
+         out (byte-array size)
+         bb (ByteBuffer/wrap out)]
+    (doseq [ba byte-arrays]
+      (.put bb ba))
+    out))
+
 (defn msg->bytea
   "Converts a sequence of strings to a null-separated byte array."
   [msg enc]
   (if (empty? msg)
-    []
-    (let [handle-args (mapv #(str->bytea % "ASCII") (or (butlast msg) ()))
-          data-arg    (str->bytea (last msg) enc)]
-      (interpose (byte-array [(byte 0)]) (conj handle-args data-arg)))))
+    (byte-array 0)
+    (let [handle-args (mapv #(str->bytea (str %) "ASCII") (or (butlast msg) ()))
+          data-arg    (str->bytea (str (last msg)) enc)]
+      (->> data-arg
+           (conj handle-args)
+           (interpose (byte-array [(byte 0)]))
+           concat-bytea))))
 
 (defn split-null
   "Splits byte-array to chunks separated by null bytes"

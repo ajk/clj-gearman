@@ -2,11 +2,6 @@
   (:require [clojure.test :refer :all]
             [clj-gearman.util :as u]))
 
-(defn flatten-helper [msg]
-  (->> msg
-       (map vec)
-       (apply concat)
-       byte-array))
 
 (deftest convert-ints
   (testing "Convert integers to byte arrays and back."
@@ -31,6 +26,6 @@
 
 (deftest convert-msg
   (testing "Convert message payload to null-separated byte arrays and back"
-    (is (= []                  (-> []                  (u/msg->bytea "ASCII") flatten-helper (u/bytea->msg "ASCII"))))
-    (is (= ["echo"]            (-> ["echo"]            (u/msg->bytea "ASCII") flatten-helper (u/bytea->msg "ASCII"))))
-    (is (= ["Foo" "Bar" "Bäz"] (-> ["Foo" "Bar" "Bäz"] (u/msg->bytea "UTF-8") flatten-helper (u/bytea->msg "UTF-8"))))))
+    (is (= []                  (-> []                  (u/msg->bytea "ASCII") (u/bytea->msg "ASCII"))))
+    (is (= ["echo"]            (-> ["echo"]            (u/msg->bytea "ASCII") (u/bytea->msg "ASCII"))))
+    (is (= ["Foo" "Bar" "Bäz"] (-> ["Foo" "Bar" "Bäz"] (u/msg->bytea "UTF-8") (u/bytea->msg "UTF-8"))))))

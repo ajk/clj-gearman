@@ -51,12 +51,12 @@
 (defn write-msg [sock type code enc msg]
   (let [w    (.getOutputStream @sock)
         data (u/msg->bytea msg enc)
-        size (reduce + (map count data))]
-    (.write w type)
-    (.write w (u/int->bytea code))
-    (.write w (u/int->bytea size))
-    (doseq [chunk data]
-      (.write w chunk))
+        size (count data)]
+    (.write w (u/concat-bytea
+                [type
+                 (u/int->bytea code)
+                 (u/int->bytea size)
+                 data]))
     (.flush w)))
 
 (defn wait-loop [worker fun]
