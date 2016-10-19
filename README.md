@@ -11,7 +11,7 @@ Take a look at [clearman](https://github.com/joshrotenberg/clearman) if you need
 
 Add the following dependency to your project.clj file:
 
-[![Clojars Project](https://img.shields.io/clojars/v/clj-gearman.svg)](https://clojars.org/clj-gearman)
+![](https://clojars.org/clj-gearman/latest-version.svg)
 
 # Synopsis
 
