@@ -41,7 +41,6 @@ Worker side:
             ; also be a single string.
             "reverse" (fn [workload] (str/reverse workload))
 
-
             ; If you like a more hands-on approach you can operate on the worker socket directly.
             ; In this case you are responsible for all communication with the job server.
             "long-running" (fn [socket job-handle workload]
@@ -84,7 +83,7 @@ Client side:
 
    ; If true, exceptions thrown in worker will be propagated through
    ; the job server to this client.
-   :worker-exceptions false })
+   :worker-exceptions false})
 
 ; Connect to job server and submit the work requests.
 (with-open [socket (c/connect client)]
