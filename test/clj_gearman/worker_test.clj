@@ -23,7 +23,7 @@
                  (if (= code "JOB_CREATED")
                   (rest (last (c/get-status client job-handle))))))
 
-            #(with-open [client (c/connect (assoc job-servers :exceptions true))]
+            #(with-open [client (c/connect (assoc job-servers :worker-exceptions true))]
                (let [[code [_ ex]] (c/submit-job client "ex-1" "1")]
                  [code ex]))
 
