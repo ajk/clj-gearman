@@ -27,7 +27,7 @@ Worker side:
    :in-enc  "UTF-8"
    :out-enc "UTF-8"
 
-   ; Map of your worker is capability functions.
+   ; Map of your worker capability functions.
    ; Notice that keys should be strings.
    :can-do {
             ; First is the ever popular string reversal.
@@ -62,7 +62,8 @@ Client side:
 
 ```clojure
 (ns my-client
-  (:require [clj-gearman.client :as c]))
+  (:require [clojure.pprint :refer [pprint]]
+            [clj-gearman.client :as c]))
 
 (def client
 
@@ -81,10 +82,19 @@ Client side:
 
 ; Connect to job server and submit the work requests.
 (with-open [socket (c/connect client)]
-  (let [[code result] (c/submit-job socket "reverse" "foo bar baz")]
-   (if (= code "WORK\_COMPLETE")
-    (println result)
-    (throw Exception. (str code " " result)))))
+  (let [[code result :as response] (c/submit-job socket "reverse" "foo bar baz")]
+    (if (= code "WORK_COMPLETE")
+      (println result)
+      (throw (Exception. (pr-str response)))))
+
+  ; Fire-and-forget background job.
+  (let [[code job-handle :as response] (c/submit-job-bg socket "long-running" "Our workload string")]
+    (if (= code "JOB_CREATED")
+      ; We can poll for status of the created task.
+      (dotimes [_ 10]
+        (Thread/sleep 1000)
+        (pprint (c/get-status socket job-handle)))
+      (throw (Exception. (pr-str response))))))
 
 ```
 
