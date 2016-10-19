@@ -49,11 +49,14 @@
 (defn submit-job-bg
   ([client fn-name data] (submit-job-bg client fn-name data {}))
   ([client fn-name data opt]
-   (s/request client
-            (:code opt (h/code "SUBMIT_JOB_BG"))
-            fn-name
-            (:uniq opt (u/new-uniq))
-            data)))
+   (let [[code [job-handle] :as response] (s/request client
+                                                   (:code opt (h/code "SUBMIT_JOB_BG"))
+                                                   fn-name
+                                                   (:uniq opt (u/new-uniq))
+                                                   data)]
+     (if (= code "JOB_CREATED")
+       [code job-handle]
+       response))))
 
 (defn submit-job-high-bg
   ([client fn-name data] (submit-job-high-bg client fn-name data {}))

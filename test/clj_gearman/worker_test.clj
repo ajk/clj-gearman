@@ -18,7 +18,7 @@
                (c/submit-job client "slow-1" "zero"))
 
             #(with-open [client (c/connect job-servers)]
-               (let [[code [job-handle]] (c/submit-job-bg client "bg-1" "1")]
+               (let [[code job-handle] (c/submit-job-bg client "bg-1" "1")]
                  (Thread/sleep 100)
                  (if (= code "JOB_CREATED")
                   (rest (last (c/get-status client job-handle))))))
