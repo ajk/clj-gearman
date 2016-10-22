@@ -66,7 +66,9 @@
     (.flush w)))
 
 (defn wait-loop [worker fun]
-  (.setSoTimeout @worker 30000)
+  ; Add some randomness to our sleep period so multiple workers
+  ; don't poll at the same time.
+  (.setSoTimeout @worker (+ 30000 (rand-int 10000)))
   (loop []
     (if-let [res (try (fun) (catch SocketTimeoutException _ false))]
       (do
