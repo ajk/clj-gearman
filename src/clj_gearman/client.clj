@@ -84,7 +84,7 @@
     [code response]))
 
 (defn connect [c-map]
-  (let [client (s/connect (first (:job-servers c-map)) c-map)]
+  (let [client (s/connect (first (:job-servers c-map)) c-map 10)]
     (when (:worker-exceptions c-map)
       (option-req client "exceptions"))
     client))

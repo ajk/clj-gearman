@@ -1,5 +1,5 @@
 (ns clj-gearman.socket
-  (:import (java.net Socket SocketTimeoutException)
+  (:import (java.net Socket ConnectException SocketTimeoutException)
            (java.io Closeable))
   (:require [clj-gearman.header :as h]
             [clj-gearman.util :as u]))
@@ -26,9 +26,15 @@
 
 
 (defn connect
-  ([conn] (connect conn {}))
-  ([{:keys [host port]} meta]
-   (MetaSocket. (Socket. host port) meta)))
+  ([conn] (connect conn {} 0))
+  ([{:keys [host port] :as conn} meta retry]
+   (try
+     (MetaSocket. (Socket. host port) meta)
+     (catch ConnectException ex
+       (if (pos? retry)
+         (do (Thread/sleep 1000)
+             (connect conn meta (dec retry)))
+         (throw ex))))))
 
 (defn disconnect [sock]
   (.close @sock))

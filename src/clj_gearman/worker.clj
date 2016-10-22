@@ -84,7 +84,7 @@
           (cant-do worker fn-name))))))
 
 (defn connect [w-map]
-  (let [worker (s/connect (first (:job-servers w-map)) w-map)]
+  (let [worker (s/connect (first (:job-servers w-map)) w-map 10)]
     (doseq [ability (keys (get w-map :can-do {}))]
       (can-do worker (name ability)))
     worker))
