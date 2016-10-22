@@ -64,7 +64,7 @@
   "Splits byte-array to chunks separated by null bytes"
   [byte-a]
   (map byte-array (filter #(or (> (count %) 1) (not= (first %) (byte 0)))
-                          (partition-by #(= % 0) byte-a))))
+                          (partition-by zero? byte-a))))
 
 (defn bytea->msg
   "Converts a null-separated byte array to a sequence of strings."
