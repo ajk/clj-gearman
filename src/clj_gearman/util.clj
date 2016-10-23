@@ -1,11 +1,16 @@
 (ns clj-gearman.util
+  "Miscellaneous utility functions."
   (:import (java.nio ByteBuffer))
   (:require [clojure.pprint :refer [pprint]]))
 
-(defn new-uniq []
+(defn new-uniq
+  "Generates a new version 4 UUID."
+  []
   (str (java.util.UUID/randomUUID)))
 
-(defn fun-arity  [fun]
+(defn fun-arity
+  "Returns the count of arguments that the function takes."
+  [fun]
   (->> (class fun)
        .getDeclaredMethods
        (filter #(= "invoke" (.getName %)))
@@ -28,19 +33,21 @@
       (.getInt 0)))
 
 (defn str->bytea
-  "Converts a string in specific encoding to a byte array."
+  "Converts a string in specific encoding to a byte array. Defaults to UTF-8."
   ([str] (str->bytea str "UTF-8"))
   ([str enc]
    (.getBytes str (or enc "UTF-8"))))
 
 (defn bytea->str
-  "Converts a byte array to a string in specific encoding."
+  "Converts a byte array to a string in specific encoding. Defaults to UTF-8."
   ([byte-a] (bytea->str byte-a "UTF-8"))
   ([byte-a enc]
    (String. byte-a (or enc "UTF-8"))))
 
 
-(defn concat-bytea [byte-arrays]
+(defn concat-bytea
+  "Concatenates a sequence of byte arrays into a single one."
+  [byte-arrays]
   (let  [size (reduce + (map count byte-arrays))
          out (byte-array size)
          bb (ByteBuffer/wrap out)]
@@ -60,7 +67,7 @@
            (interpose (byte-array [(byte 0)]))
            concat-bytea))))
 
-(defn split-null
+(defn- split-null
   "Splits byte-array to chunks separated by null bytes"
   [byte-a]
   (map byte-array (filter #(or (> (count %) 1) (not= (first %) (byte 0)))

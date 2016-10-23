@@ -52,7 +52,6 @@ Worker side:
                                  (w/work-status socket job-handle 2 3)
                                  (your-slow-operation-three workload)
                                  (w/work-status socket job-handle 3 3)
-                                 (w/work-complete socket job-handle "ok"))
                                (catch Throwable ex
                                  (w/work-exception socket job-handle ex))))}})
 
@@ -93,15 +92,20 @@ Client side:
       (throw (Exception. (pr-str response)))))
 
   ; Fire-and-forget background job.
+  ; Use this if you don't need the final return value from the worker.
   (let [[code job-handle :as response] (c/submit-job-bg socket "long-running" "Our workload string")]
     (if (= code "JOB_CREATED")
-      ; We can poll for status of the created task.
+      ; Optionally poll for status of the created task.
       (dotimes [_ 10]
         (Thread/sleep 1000)
         (pprint (c/get-status socket job-handle)))
       (throw (Exception. (pr-str response))))))
 
 ```
+
+# API documentation
+
+[Read the full api docs here.](https://ajk.github.io/clj-gearman/index.html)
 
 
 # Contributing

@@ -1,4 +1,5 @@
 (ns clj-gearman.header
+  "Gearman request and response codes."
   (:require [clojure.set :refer [map-invert]]))
 
 
