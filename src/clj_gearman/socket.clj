@@ -36,8 +36,8 @@
              (connect conn meta (dec retry)))
          (throw ex))))))
 
-(defn disconnect [sock]
-  (.close @sock))
+(defn disconnect [socket]
+  (.close @socket))
 
 (defn read-bytes [in ^Integer len]
   (if (pos? len)
@@ -46,16 +46,16 @@
 (defn read-int [in]
   (u/bytea->int (read-bytes in 4)))
 
-(defn read-msg [sock enc]
-  (let [r      (.getInputStream @sock)
+(defn read-msg [socket enc]
+  (let [r      (.getInputStream @socket)
         type   (read-bytes r 4)
         code   (read-int r)
         size   (read-int r)
         byte-a (read-bytes r size)]
     (list type code size (u/bytea->msg byte-a enc))))
 
-(defn write-msg [sock type code enc msg]
-  (let [w    (.getOutputStream @sock)
+(defn write-msg [socket type code enc msg]
+  (let [w    (.getOutputStream @socket)
         data (u/msg->bytea msg enc)
         size (count data)]
     (.write w (u/concat-bytea

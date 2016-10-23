@@ -11,20 +11,20 @@
 
 (def job-servers {:job-servers [{:host "localhost" :port 5555}]})
 
-(def tasks [#(with-open [client (c/connect job-servers)]
-               (c/submit-job client "reverse" "foo bar baz"))
+(def tasks [#(with-open [socket (c/connect job-servers)]
+               (c/submit-job socket "reverse" "foo bar baz"))
 
-            #(with-open [client (c/connect job-servers)]
-               (c/submit-job client "slow-1" "zero"))
+            #(with-open [socket (c/connect job-servers)]
+               (c/submit-job socket "slow-1" "zero"))
 
-            #(with-open [client (c/connect job-servers)]
-               (let [[code job-handle] (c/submit-job-bg client "bg-1" "1")]
+            #(with-open [socket (c/connect job-servers)]
+               (let [[code job-handle] (c/submit-job-bg socket "bg-1" "1")]
                  (Thread/sleep 100)
                  (if (= code "JOB_CREATED")
-                  (rest (last (c/get-status client job-handle))))))
+                  (rest (last (c/get-status socket job-handle))))))
 
-            #(with-open [client (c/connect (assoc job-servers :worker-exceptions true))]
-               (let [[code [_ ex]] (c/submit-job client "ex-1" "1")]
+            #(with-open [socket (c/connect (assoc job-servers :worker-exceptions true))]
+               (let [[code [_ ex]] (c/submit-job socket "ex-1" "1")]
                  [code ex]))
 
             ])
@@ -33,28 +33,28 @@
   (assoc job-servers
          :can-do {"reverse" (fn [s] (apply str (reverse s)))
 
-                  "slow-1"  (fn [worker job-handle workload]
-                              (w/work-data worker job-handle workload)
+                  "slow-1"  (fn [socket job-handle workload]
+                              (w/work-data socket job-handle workload)
                               (Thread/sleep 100)
-                              (w/work-data worker job-handle " and one")
+                              (w/work-data socket job-handle " and one")
                               (Thread/sleep 100)
-                              (w/work-data worker job-handle " and two")
+                              (w/work-data socket job-handle " and two")
                               (Thread/sleep 100)
-                              (w/work-complete worker job-handle " and three"))
+                              (w/work-complete socket job-handle " and three"))
 
-                  "bg-1" (fn [worker job-handle _]
-                           (w/work-status worker job-handle 33 100)
+                  "bg-1" (fn [socket job-handle _]
+                           (w/work-status socket job-handle 33 100)
                            (Thread/sleep 300)
-                           (w/work-complete worker job-handle ""))
+                           (w/work-complete socket job-handle ""))
 
                   "ex-1" (fn [workload]
                            (throw (Exception. "exception in worker")))
                   }))
 
 (defn run-worker []
-  (with-open [worker (w/connect my-worker)]
+  (with-open [socket (w/connect my-worker)]
     (dotimes [_ (count tasks)]
-      (w/work worker))))
+      (w/work socket))))
 
 
 (def t-1 (doto (Thread. #(run-worker)) (.start)))
