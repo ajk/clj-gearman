@@ -1,4 +1,5 @@
 (ns clj-gearman.pool
+  "Gearman job server connection pool functions."
   (:import (java.net ConnectException))
   (:require [clj-gearman.socket :as s]))
 
