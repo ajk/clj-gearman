@@ -1,5 +1,6 @@
 (ns clj-gearman.client
   (:require [clj-gearman.socket :as s]
+            [clj-gearman.pool   :as p]
             [clj-gearman.header :as h]
             [clj-gearman.util   :as u]))
 
@@ -84,7 +85,7 @@
     [code response]))
 
 (defn connect [client]
-  (let [socket (s/connect (first (:job-servers client)) client 10)]
+  (let [socket (p/connect-first (:job-servers client) client)]
     (when (:worker-exceptions client)
       (option-req socket "exceptions"))
     socket))

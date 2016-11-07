@@ -72,7 +72,7 @@ Client side:
 (def client
 
    ; List of job servers you have running.
-   ; Currently only the first one is used.
+   ; Client connects to first server available.
   {:job-servers [{:host "localhost" :port 4730}]
 
    ; String encoding for input and output.

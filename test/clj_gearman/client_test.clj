@@ -4,7 +4,9 @@
 
 ; NOTICE: These test will fail unless gearman server is running in port 5555
 
-(def my-client {:job-servers [{:host "localhost" :port 5555}]})
+; First job server doesn't exist but connection to second one should succeed.
+(def my-client {:job-servers [{:host "localhost" :port 5554}
+                              {:host "localhost" :port 5555}]})
 
 (deftest echo
   (testing "Echo request and response"
