@@ -1,4 +1,4 @@
-(defproject clj-gearman "0.3.0"
+(defproject clj-gearman "0.4.0"
   :description "Gearman clients and workers in Clojure"
   :url "https://github.com/ajk/clj-gearman"
   :license {:name "Eclipse Public License"
