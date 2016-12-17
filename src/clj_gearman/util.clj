@@ -20,14 +20,14 @@
 
 (defn int->bytea
   "Converts signed integer to a byte array in big-endian order."
-  [x]
+  [^Long x]
   (-> (ByteBuffer/allocate 4)
       (.putInt x)
       (.array)))
 
 (defn bytea->int
   "Converts a byte array in big-endian order to signed integer."
-  [byte-a]
+  [^bytes byte-a]
   (-> (ByteBuffer/allocate 4)
       (.put byte-a)
       (.getInt 0)))
@@ -35,23 +35,24 @@
 (defn str->bytea
   "Converts a string in specific encoding to a byte array. Defaults to UTF-8."
   ([str] (str->bytea str "UTF-8"))
-  ([str enc]
+  ([^String str ^String enc]
    (.getBytes str (or enc "UTF-8"))))
 
 (defn bytea->str
   "Converts a byte array to a string in specific encoding. Defaults to UTF-8."
   ([byte-a] (bytea->str byte-a "UTF-8"))
-  ([byte-a enc]
+  ([^bytes byte-a ^String enc]
    (String. byte-a (or enc "UTF-8"))))
 
 
 (defn concat-bytea
   "Concatenates a sequence of byte arrays into a single one."
+  ^bytes
   [byte-arrays]
   (let  [size (reduce + (map count byte-arrays))
-         out (byte-array size)
+         ^bytes out (byte-array size)
          bb (ByteBuffer/wrap out)]
-    (doseq [ba byte-arrays]
+    (doseq [^bytes ba byte-arrays]
       (.put bb ba))
     out))
 

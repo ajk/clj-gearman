@@ -41,10 +41,10 @@
                            (range (get worker-def :nthreads 1))))
         server-pools (map server-pool workers)]
     (doseq [pool server-pool]
-      (doseq [th pool]
+      (doseq [^Thread th pool]
         (.start th)))
     (fn []
       (reset! running false)
       (doseq [pool server-pool]
-        (doseq [th pool]
+        (doseq [^Thread th pool]
           (.join th))))))
