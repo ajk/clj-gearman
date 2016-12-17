@@ -1,6 +1,7 @@
 (ns clj-gearman.worker
   (:require [clj-gearman.socket :as s]
             [clj-gearman.header :as h]
+            [clj-gearman.pool :as p]
             [clj-gearman.util :as u]))
 
 (defn send-msg [socket code & args]
@@ -64,7 +65,7 @@
 
 
 (defn wait-for-task [socket]
-  (s/wait-loop
+  (s/with-timeout
     socket
     (fn []
       (let [[code data] (grab-job socket)]
@@ -88,3 +89,6 @@
     (doseq [ability (keys (get worker :can-do {}))]
       (can-do socket (name ability)))
     socket))
+
+(defn pool [worker]
+  (p/worker-pool worker connect work))

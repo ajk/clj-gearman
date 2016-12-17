@@ -3,7 +3,6 @@
   (:import (java.net ConnectException))
   (:require [clj-gearman.socket :as s]))
 
-
 (defn- conn-socket [meta retry]
   (fn [conn] (try (s/connect conn meta retry) (catch ConnectException ex nil))))
 
@@ -23,3 +22,29 @@
     socket
     ; If that fails, loop them again and throw exception if we still can't connect.
     (conn-slow servers conn-meta)))
+
+
+(defn- worker-thread [running worker connect work]
+  (Thread. (fn []
+             (while @running
+               (try
+                 (with-open [socket (connect worker)]
+                   (while @running (work socket)))
+                 (catch Throwable _ (Thread/sleep 5000)))))))
+
+
+(defn worker-pool [worker-def connect work]
+  (let [running (atom true)
+        workers (map #(assoc worker-def :job-servers [%]) (:job-servers worker-def))
+        server-pool (fn [worker]
+                      (map #(worker-thread running worker connect work)
+                           (range (get worker-def :nthreads 1))))
+        server-pools (map server-pool workers)]
+    (doseq [pool server-pool]
+      (doseq [th pool]
+        (.start th)))
+    (fn []
+      (reset! running false)
+      (doseq [pool server-pool]
+        (doseq [th pool]
+          (.join th))))))
