@@ -33,18 +33,20 @@
                  (catch Throwable _ (Thread/sleep 5000)))))))
 
 
-(defn worker-pool [worker-def connect work]
+(defn worker-pool
+  "Create and manage worker pools. Used via worker/pool function."
+  [worker-def connect work]
   (let [running (atom true)
         workers (map #(assoc worker-def :job-servers [%]) (:job-servers worker-def))
         server-pool (fn [worker]
-                      (map #(worker-thread running worker connect work)
+                      (map (fn [_] (worker-thread running worker connect work))
                            (range (get worker-def :nthreads 1))))
         server-pools (map server-pool workers)]
-    (doseq [pool server-pool]
+    (doseq [pool server-pools]
       (doseq [^Thread th pool]
         (.start th)))
     (fn []
       (reset! running false)
-      (doseq [pool server-pool]
+      (doseq [pool server-pools]
         (doseq [^Thread th pool]
           (.join th))))))

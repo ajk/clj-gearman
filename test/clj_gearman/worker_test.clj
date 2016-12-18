@@ -74,4 +74,19 @@
     (is (= '("1" "1" "33" "100") (results 2)))
     (is (= ["WORK_EXCEPTION" "java.lang.Exception: exception in worker"] (results 3)))))
 
+;;;
 
+(def pool (w/pool (assoc my-worker :nthreads 4)))
+
+(def parallel-tasks
+  (map (fn [x] #(with-open [socket (c/connect job-servers)]
+                  (c/submit-job socket "reverse" (str x)))) (range 99)))
+
+(def parallel-results (mapv last (pmap #(%) parallel-tasks)))
+
+; Shut down worker pool
+(pool)
+
+(deftest parallel-responses
+  (testing "Responses from concurrent worker pool"
+    (is (= 99 (count parallel-results)))))
