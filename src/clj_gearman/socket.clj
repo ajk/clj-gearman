@@ -1,4 +1,5 @@
 (ns clj-gearman.socket
+  "Low-level socket functions."
   (:import (java.net Socket ConnectException SocketTimeoutException)
            (java.io Closeable InputStream))
   (:require [clj-gearman.header :as h]

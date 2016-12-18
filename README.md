@@ -25,8 +25,11 @@ Worker side:
 (def worker
 
    ; List of job servers you have running.
-   ; Currently only the first one is used.
   {:job-servers [{:host "localhost" :port 4730}]
+
+   ; Number of threads to run per job server in a worker pool.
+   ; Defaults to one.
+   :nthreads 4
 
    ; String encoding for input and output.
    ; You probably want to keep these utf-8.
@@ -55,6 +58,18 @@ Worker side:
                                (catch Throwable ex
                                  (w/work-exception socket job-handle ex))))}})
 
+; Start a worker pool.
+(def pool (w/pool worker))
+
+; Stop workers by calling the function returned previously.
+; Note that stopping the workers might take some time, especially if
+; there is a long running task in progress.
+(pool)
+
+
+; Alternatively, if you just need to run a single worker on a single server
+; you can use this lower-level method directly.
+;
 ; Connect to job server and start accepting tasks.
 (with-open [socket (w/connect worker)]
   (while true (w/work socket)))

@@ -1,4 +1,5 @@
 (ns clj-gearman.client
+  "Gearman client functions."
   (:require [clj-gearman.socket :as s]
             [clj-gearman.pool   :as p]
             [clj-gearman.header :as h]

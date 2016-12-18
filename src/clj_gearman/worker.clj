@@ -1,4 +1,5 @@
 (ns clj-gearman.worker
+  "Gearman worker functions."
   (:require [clj-gearman.socket :as s]
             [clj-gearman.header :as h]
             [clj-gearman.pool :as p]
@@ -90,5 +91,8 @@
       (can-do socket (name ability)))
     socket))
 
-(defn pool [worker]
+(defn pool
+  "Create a pool of worker threads and start accepting tasks.
+  Returns a function which will stop the pool when called."
+  [worker]
   (p/worker-pool worker connect work))
