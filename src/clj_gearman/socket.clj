@@ -70,13 +70,15 @@
     (.flush w)))
 
 (defn with-timeout [worker fun]
-  ; Add some randomness to our sleep period so multiple workers
+  ; Add some randomness to our wait period so multiple workers
   ; don't poll at the same time.
-  (let [^Socket s @worker]
-    (.setSoTimeout s (+ 5000 (rand-int 5000)))
-    (let [res (try (fun) (catch SocketTimeoutException _ ["" []]))]
-      (.setSoTimeout s 0)
-      res)))
+  (try
+    (.setSoTimeout @worker (+ 5000 (rand-int 5000)))
+    (fun)
+    (catch SocketTimeoutException _
+      ["" []])
+    (finally
+      (.setSoTimeout @worker 0))))
 
 (defn response [socket opt]
   (let [[_ code _ data] (read-msg socket (:in-enc opt))]
