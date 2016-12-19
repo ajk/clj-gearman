@@ -28,6 +28,10 @@ Worker side:
   {:job-servers [{:host "localhost" :port 4730}]
 
    ; Number of threads to run per job server in a worker pool.
+   ; This will be multiplied by the number of job servers.
+   ; For example, if you connect to three servers and :nthreads if five,
+   ; you will get 15 worker threads in total.
+   ;
    ; Defaults to one.
    :nthreads 4
 
@@ -59,16 +63,16 @@ Worker side:
                                  (w/work-exception socket job-handle ex))))}})
 
 ; Start a worker pool.
-(def pool (w/pool worker))
+(def pool-fn (w/pool worker))
 
-; Stop workers by calling the function returned previously.
-; Note that stopping the workers might take some time, especially if
-; there is a long running task in progress.
-(pool)
+; When you are done, stop workers by calling the function returned previously.
+; Note that this might take some time, especially if there is a long running task in progress.
+(pool-fn)
 
 
 ; Alternatively, if you just need to run a single worker on a single server
-; you can use this lower-level method directly.
+; you can use this lower-level method directly. Or you can use this to create your own
+; worker pool implementation.
 ;
 ; Connect to job server and start accepting tasks.
 (with-open [socket (w/connect worker)]
@@ -109,12 +113,15 @@ Client side:
   ; Fire-and-forget background job.
   ; Use this if you don't need the final return value from the worker.
   (let [[code job-handle :as response] (c/submit-job-bg socket "long-running" "Our workload string")]
-    (if (= code "JOB_CREATED")
-      ; Optionally poll for status of the created task.
-      (dotimes [_ 10]
-        (Thread/sleep 1000)
-        (pprint (c/get-status socket job-handle)))
-      (throw (Exception. (pr-str response))))))
+    (if (not= code "JOB_CREATED")
+      ; Oops, that's an error.
+      (throw (Exception. (pr-str response)))
+      ; Otherwise, we are done. Job is sent to job server and hopefully some worker will pick it up.
+      ; Worker will not send us the result but we can optionally poll for status of the task.
+      (comment
+        (dotimes [_ 10]
+          (Thread/sleep 1000)
+          (pprint (c/get-status socket job-handle)))))))
 
 ```
 
